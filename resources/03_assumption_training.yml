@@ -1,0 +1,49 @@
+# TABLE UPDATE trigger: when the experience mart changes, re-estimate the assumption models and register challengers.
+resources:
+  jobs:
+    assumption_training:
+      name: "Actuarial Workbench · 03 Assumption models (table update)"
+      description: "Fires when experience_mart is updated. Poisson mortality GLM + disability incidence GLM (statsmodels), disability recovery (lifelines), lapse GLM vs LightGBM. Logged to MLflow, registered in UC as @challenger."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: table_update
+      trigger:
+        pause_status: UNPAUSED
+        table_update:
+          table_names:
+            - ${var.catalog}.${var.schema}.experience_mart
+          condition: ANY_UPDATED
+          min_time_between_triggers_seconds: 60
+      max_concurrent_runs: 1
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+      tasks:
+        - task_key: mortality_glm
+          notebook_task:
+            notebook_path: ../src/notebooks/03a_mortality_glm.py
+          environment_key: actuarial
+        - task_key: disability_models
+          notebook_task:
+            notebook_path: ../src/notebooks/03b_disability_models.py
+          environment_key: actuarial
+        - task_key: lapse_models
+          notebook_task:
+            notebook_path: ../src/notebooks/03c_lapse_models.py
+          environment_key: actuarial
+      environments:
+        - environment_key: actuarial
+          spec:
+            environment_version: "4"
+            dependencies:
+              - statsmodels>=0.14
+              - scikit-learn>=1.4
+              - lightgbm>=4.3
+              - lifelines>=0.29
+              - numba>=0.60
+              - mlflow>=3.1

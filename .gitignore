@@ -1,0 +1,33 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Node / frontend build
+node_modules/
+src/app/frontend/dist/
+*.tsbuildinfo
+
+# Databricks CLI / bundle state
+.databricks/
+.databrickscfg
+
+# Generated synthetic data (regenerate with scripts/generate_data.py)
+data/*
+!data/.gitkeep
+
+# Secrets and local config
+.env
+.env.*
+*.pem
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.log

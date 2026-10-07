@@ -1,0 +1,44 @@
+# MANUAL (from the app): nested stochastic valuation + Solvency II-style stress tests.
+resources:
+  jobs:
+    stochastic_stress:
+      name: "Actuarial Workbench · 06 Stochastic & stress (manual)"
+      description: "Outer real-world scenarios x inner risk-neutral Monte Carlo (cost of guarantee), distributed over Spark tasks; deterministic SII-style stresses."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: manual
+      max_concurrent_runs: 2
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: n_outer
+          default: "1000"
+        - name: n_inner
+          default: "500000"
+        - name: backend
+          default: "numpy"
+        - name: requested_by
+          default: "scheduler"
+      tasks:
+        - task_key: stress
+          notebook_task:
+            notebook_path: ../src/notebooks/06b_stress_tests.py
+          environment_key: actuarial
+        - task_key: nested_stochastic
+          notebook_task:
+            notebook_path: ../src/notebooks/06a_nested_stochastic.py
+          environment_key: actuarial
+      environments:
+        - environment_key: actuarial
+          spec:
+            environment_version: "4"
+            dependencies:
+              - statsmodels>=0.14
+              - scikit-learn>=1.4
+              - lightgbm>=4.3
+              - lifelines>=0.29
+              - numba>=0.60
+              - mlflow>=3.1

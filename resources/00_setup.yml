@@ -1,0 +1,31 @@
+# One-off bootstrap: tables, audit log, approvals, grants. Manual trigger.
+resources:
+  jobs:
+    setup:
+      name: "Actuarial Workbench · 00 Setup (manual)"
+      description: "Creates governed tables (approvals, audit log) and seeds the baseline approval. Run once after deploy."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: manual
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+      tasks:
+        - task_key: setup
+          notebook_task:
+            notebook_path: ../src/notebooks/00_setup.py
+          environment_key: actuarial
+      environments:
+        - environment_key: actuarial
+          spec:
+            environment_version: "4"
+            dependencies:
+              - statsmodels>=0.14
+              - scikit-learn>=1.4
+              - lightgbm>=4.3
+              - lifelines>=0.29
+              - numba>=0.60
+              - mlflow>=3.1

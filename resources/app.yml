@@ -1,0 +1,57 @@
+# Databricks App — the Life & Pension Actuarial Workbench UI (FastAPI + React).
+# Resources below grant the app's service principal exactly what it needs; app.yaml
+# reads the IDs back via `valueFrom`. Table/model grants and the Genie space (CAN_RUN) are
+# applied by scripts/deploy_app.sh, so the bundle deploys before the Genie space exists.
+# Apps don't auto-stop: `databricks apps stop lp-actuarial-workbench` when not demoing.
+resources:
+  apps:
+    lp_workbench:
+      name: ${var.app_name}
+      description: "Life & Pension Actuarial Workbench — extract ingestion, assumption models, approvals, projection, stochastic, governance (synthetic data)"
+      source_code_path: ../src/app
+      resources:
+        - name: sql-warehouse
+          sql_warehouse:
+            id: ${var.warehouse_id}
+            permission: CAN_USE
+        - name: extract-landing
+          uc_securable:
+            securable_type: VOLUME
+            securable_full_name: ${var.catalog}.${var.schema}.extract_landing
+            permission: WRITE_VOLUME
+        - name: job-setup
+          job:
+            id: ${resources.jobs.setup.id}
+            permission: CAN_MANAGE_RUN
+        - name: job-extract-ingest
+          job:
+            id: ${resources.jobs.extract_ingest.id}
+            permission: CAN_MANAGE_RUN
+        - name: job-experience-mart
+          job:
+            id: ${resources.jobs.experience_mart.id}
+            permission: CAN_MANAGE  # app can pause/unpause the trigger
+        - name: job-assumption-training
+          job:
+            id: ${resources.jobs.assumption_training.id}
+            permission: CAN_MANAGE_RUN
+        - name: job-model-factory
+          job:
+            id: ${resources.jobs.model_factory.id}
+            permission: CAN_MANAGE_RUN
+        - name: job-bel-projection
+          job:
+            id: ${resources.jobs.bel_projection.id}
+            permission: CAN_MANAGE_RUN
+        - name: job-stochastic-stress
+          job:
+            id: ${resources.jobs.stochastic_stress.id}
+            permission: CAN_MANAGE_RUN
+        - name: job-ae-monitor
+          job:
+            id: ${resources.jobs.ae_monitor.id}
+            permission: CAN_MANAGE  # app can pause/unpause the trigger
+        - name: job-full-pipeline
+          job:
+            id: ${resources.jobs.full_pipeline.id}
+            permission: CAN_MANAGE_RUN

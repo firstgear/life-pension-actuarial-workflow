@@ -1,0 +1,14 @@
+# Volumes owned by the bundle. The schema itself is created by scripts/bootstrap.sql
+# (table-update triggers need their tables to exist before the jobs are created).
+resources:
+  volumes:
+    extract_landing:
+      catalog_name: ${var.catalog}
+      schema_name: ${var.schema}
+      name: extract_landing
+      comment: "Landing zone for policy admin extracts. incoming/ is watched by a file-arrival trigger."
+    artifacts:
+      catalog_name: ${var.catalog}
+      schema_name: ${var.schema}
+      name: artifacts
+      comment: "Model cards, governance packs and other generated artefacts."

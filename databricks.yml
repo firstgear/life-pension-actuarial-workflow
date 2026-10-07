@@ -1,0 +1,36 @@
+# Life & Pension Actuarial Workbench — Databricks Asset Bundle
+# Synthetic data only. See README.md for the deploy-from-scratch order.
+#   databricks bundle deploy --var catalog=<catalog> --var warehouse_id=<warehouse-id>
+bundle:
+  name: lp-actuarial-demo
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for all demo assets (must already exist)
+    default: main
+  schema:
+    description: Schema holding tables, volumes and registered models
+    default: lp_actuarial
+  warehouse_id:
+    description: SQL warehouse used by the app and Genie (required)
+  app_name:
+    default: lp-actuarial-workbench
+  trigger_pause:
+    description: Pause status for the nightly schedule (keep PAUSED between demos)
+    default: PAUSED
+
+include:
+  - resources/*.yml
+
+sync:
+  exclude:
+    - .venv/**
+    - data/**
+    - src/app/frontend/node_modules/**
+    - src/app/frontend/src/**
+    - docs/**
+
+targets:
+  demo:
+    default: true
+    # Workspace host comes from your Databricks CLI profile (--profile / DATABRICKS_CONFIG_PROFILE).

@@ -1,0 +1,30 @@
+command: ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+env:
+  # Catalog and schema are derived from the bundle-granted landing volume
+  # (catalog.schema.extract_landing), so they follow --var catalog/schema.
+  - name: LANDING_VOLUME
+    valueFrom: extract-landing
+  - name: WAREHOUSE_ID
+    valueFrom: sql-warehouse
+  # Optional override. When empty the app finds the space created by
+  # scripts/create_genie_space.py by title (empty + not found = Genie tab shows a hint).
+  - name: GENIE_SPACE_ID
+    value: ""
+  - name: JOB_SETUP
+    valueFrom: job-setup
+  - name: JOB_EXTRACT_INGEST
+    valueFrom: job-extract-ingest
+  - name: JOB_EXPERIENCE_MART
+    valueFrom: job-experience-mart
+  - name: JOB_ASSUMPTION_TRAINING
+    valueFrom: job-assumption-training
+  - name: JOB_MODEL_FACTORY
+    valueFrom: job-model-factory
+  - name: JOB_BEL_PROJECTION
+    valueFrom: job-bel-projection
+  - name: JOB_STOCHASTIC_STRESS
+    valueFrom: job-stochastic-stress
+  - name: JOB_AE_MONITOR
+    valueFrom: job-ae-monitor
+  - name: JOB_FULL_PIPELINE
+    valueFrom: job-full-pipeline

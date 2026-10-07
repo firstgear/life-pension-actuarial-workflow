@@ -1,0 +1,63 @@
+# policy admin extract lands in the volume -> job 01 (started by the Workbench 'Drop extract' button) -> declarative pipeline with DQ -> approval request.
+resources:
+  pipelines:
+    extract_pipeline:
+      name: "Actuarial Workbench · Extract bronze→silver (Lakeflow Declarative Pipeline)"
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      channel: CURRENT
+      photon: true
+      configuration:
+        landing_path: /Volumes/${var.catalog}/${var.schema}/extract_landing
+      libraries:
+        - file:
+            path: ../src/pipeline/extract_pipeline.py
+      tags:
+        demo: lp-actuarial
+
+  jobs:
+    extract_ingest:
+      name: "Actuarial Workbench · 01 Extract ingest (app trigger)"
+      description: "Started by the Workbench when a new policy admin extract lands in /Volumes/.../extract_landing/incoming/. Runs the DQ pipeline and raises an approval request for the actuary."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: manual
+      # Production shape: fire on file arrival instead of the app button. Needs file events
+      # working on the catalog's external location (on AWS the storage role needs
+      # s3:GetBucketNotification and related permissions).
+      # trigger:
+      #   pause_status: UNPAUSED
+      #   file_arrival:
+      #     url: /Volumes/${var.catalog}/${var.schema}/extract_landing/incoming/
+      #     min_time_between_triggers_seconds: 60
+      max_concurrent_runs: 1
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+      tasks:
+        - task_key: dq_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.extract_pipeline.id}
+        - task_key: register_extract
+          depends_on:
+            - task_key: dq_pipeline
+          notebook_task:
+            notebook_path: ../src/notebooks/01_register_extract.py
+          environment_key: actuarial
+      environments:
+        - environment_key: actuarial
+          spec:
+            environment_version: "4"
+            dependencies:
+              - statsmodels>=0.14
+              - scikit-learn>=1.4
+              - lightgbm>=4.3
+              - lifelines>=0.29
+              - numba>=0.60
+              - mlflow>=3.1

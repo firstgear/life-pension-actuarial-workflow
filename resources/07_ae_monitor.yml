@@ -1,0 +1,33 @@
+# CONTINUOUS: always-on actual-vs-expected monitor over newly ingested experience (PAUSED by default to save cost).
+resources:
+  jobs:
+    ae_monitor:
+      name: "Actuarial Workbench · 07 A/E monitor (continuous)"
+      description: "Continuous job: incrementally reads new silver experience and tracks actual vs expected deaths against the champion model."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: continuous
+      continuous:
+        pause_status: PAUSED
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+      tasks:
+        - task_key: ae_monitor
+          notebook_task:
+            notebook_path: ../src/notebooks/07_ae_monitor.py
+          environment_key: actuarial
+      environments:
+        - environment_key: actuarial
+          spec:
+            environment_version: "4"
+            dependencies:
+              - statsmodels>=0.14
+              - scikit-learn>=1.4
+              - lightgbm>=4.3
+              - lifelines>=0.29
+              - numba>=0.60
+              - mlflow>=3.1

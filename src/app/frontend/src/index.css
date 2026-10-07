@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #FF3621;
+  --color-navy: #1B3139;
+}
+
+body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.tabular { font-variant-numeric: tabular-nums; }

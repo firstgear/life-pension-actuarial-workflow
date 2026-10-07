@@ -1,0 +1,38 @@
+# MANUAL (from the app): thousands of independent segment GLMs fanned out with Spark applyInPandas.
+resources:
+  jobs:
+    model_factory:
+      name: "Actuarial Workbench · 04 Model factory (manual)"
+      description: "Fits one Gompertz-Poisson GLM per segment x bootstrap replicate in parallel (Spark applyInPandas), plus a sequential baseline for the speed-up."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: manual
+      max_concurrent_runs: 3
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: n_bootstrap
+          default: "50"
+        - name: segment_by
+          default: "scheme,sex,product_type,region,period"
+        - name: requested_by
+          default: "scheduler"
+      tasks:
+        - task_key: factory
+          notebook_task:
+            notebook_path: ../src/notebooks/04_model_factory.py
+          environment_key: actuarial
+      environments:
+        - environment_key: actuarial
+          spec:
+            environment_version: "4"
+            dependencies:
+              - statsmodels>=0.14
+              - scikit-learn>=1.4
+              - lightgbm>=4.3
+              - lifelines>=0.29
+              - numba>=0.60
+              - mlflow>=3.1

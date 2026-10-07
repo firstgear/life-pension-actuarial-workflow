@@ -1,0 +1,55 @@
+# MODEL UPDATE trigger: when a new @champion alias is set on the mortality model, re-project best-estimate liabilities.
+resources:
+  jobs:
+    bel_projection:
+      name: "Actuarial Workbench · 05 BEL projection (model update)"
+      description: "Fires when the mortality model's @champion alias changes. Loads the champion from the UC model registry and projects BEL per model point (vectorised NumPy, fanned out with Spark mapInPandas)."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: model_update
+      # Model-update trigger (MODEL_ALIAS_SET on @champion) is Private Preview and may not be enabled in
+      # your workspace, so the same event is published to model_champion_events (written only when
+      # @champion moves) and the job listens with a table-update trigger. Swap back when enabled:
+      #   trigger: {model: {condition: MODEL_ALIAS_SET, securable_name: <catalog.schema.mortality_glm>, aliases: [champion]}}
+      trigger:
+        pause_status: UNPAUSED
+        table_update:
+          table_names:
+            - ${var.catalog}.${var.schema}.model_champion_events
+          condition: ANY_UPDATED
+          min_time_between_triggers_seconds: 60
+      max_concurrent_runs: 1
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: discount_rate
+          default: "0.025"
+        - name: mortality_mult
+          default: "1.0"
+        - name: lapse_mult
+          default: "1.0"
+        - name: scenario_label
+          default: "Base (champion)"
+        - name: requested_by
+          default: "model trigger"
+      tasks:
+        - task_key: project
+          notebook_task:
+            notebook_path: ../src/notebooks/05_bel_projection.py
+          environment_key: actuarial
+      environments:
+        - environment_key: actuarial
+          spec:
+            environment_version: "4"
+            dependencies:
+              - statsmodels>=0.14
+              - scikit-learn>=1.4
+              - lightgbm>=4.3
+              - lifelines>=0.29
+              - numba>=0.60
+              - mlflow>=3.1

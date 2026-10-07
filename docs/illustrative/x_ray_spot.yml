@@ -1,0 +1,43 @@
+# ILLUSTRATIVE (not run in the demo): the same model factory on Ray-on-Spark,
+# classic ML runtime, SPOT workers with on-demand fallback. Shows the config shape.
+resources:
+  jobs:
+    ray_factory_spot:
+      name: "Actuarial Workbench · X Ray model factory on spot (illustrative)"
+      description: "Illustrative: Ray-on-Spark cluster with spot workers. Same segment-GLM kernel as job 04, fanned out as Ray tasks. Not run in the demo."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: manual
+        illustrative: "true"
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: n_bootstrap
+          default: "50"
+      job_clusters:
+        - job_cluster_key: ray_spot
+          new_cluster:
+            spark_version: 16.4.x-cpu-ml-scala2.12
+            node_type_id: m6i.2xlarge
+            driver_node_type_id: m6i.2xlarge
+            autoscale:
+              min_workers: 2
+              max_workers: 16
+            aws_attributes:
+              availability: SPOT_WITH_FALLBACK
+              first_on_demand: 1
+              spot_bid_price_percent: 100
+            data_security_mode: SINGLE_USER
+            spark_conf:
+              spark.databricks.pyspark.dataFrameChunk.enabled: "true"
+      tasks:
+        - task_key: ray_factory
+          job_cluster_key: ray_spot
+          notebook_task:
+            notebook_path: ../src/notebooks/04b_model_factory_ray.py
+          libraries:
+            - pypi: {package: "ray[default]>=2.37"}
+            - pypi: {package: "statsmodels>=0.14"}

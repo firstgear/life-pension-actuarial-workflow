@@ -1,0 +1,40 @@
+# Nightly SCHEDULED rebuild of the experience mart (Spark data parallelism). Also run from the app after an approval.
+resources:
+  jobs:
+    experience_mart:
+      name: "Actuarial Workbench · 02 Experience mart (scheduled)"
+      description: "Spark: joins approved experience data to policies, builds exposure/event cells, model points and lapse assumptions. Optional scale_factor explodes the book to show data parallelism."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: scheduled
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: Europe/Brussels
+        pause_status: ${var.trigger_pause}
+      max_concurrent_runs: 1
+      queue:
+        enabled: true
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: scale_factor
+          default: "1"
+      tasks:
+        - task_key: build_mart
+          notebook_task:
+            notebook_path: ../src/notebooks/02_experience_mart.py
+          environment_key: actuarial
+      environments:
+        - environment_key: actuarial
+          spec:
+            environment_version: "4"
+            dependencies:
+              - statsmodels>=0.14
+              - scikit-learn>=1.4
+              - lightgbm>=4.3
+              - lifelines>=0.29
+              - numba>=0.60
+              - mlflow>=3.1

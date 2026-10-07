@@ -1,0 +1,31 @@
+# MANUAL end-to-end orchestration: one DAG chaining the jobs (dependencies, retries, repair runs).
+resources:
+  jobs:
+    full_pipeline:
+      name: "Actuarial Workbench · 99 End-to-end valuation run (manual)"
+      description: "Quarter-end style DAG: experience mart -> assumption models + model factory -> BEL projection -> stochastic & stress."
+      tags:
+        demo: lp-actuarial
+        data: synthetic
+        trigger_type: manual
+      tasks:
+        - task_key: experience_mart
+          run_job_task:
+            job_id: ${resources.jobs.experience_mart.id}
+        - task_key: assumption_models
+          depends_on: [{task_key: experience_mart}]
+          run_job_task:
+            job_id: ${resources.jobs.assumption_training.id}
+        - task_key: model_factory
+          depends_on: [{task_key: experience_mart}]
+          run_job_task:
+            job_id: ${resources.jobs.model_factory.id}
+        - task_key: bel_projection
+          depends_on: [{task_key: assumption_models}]
+          run_job_task:
+            job_id: ${resources.jobs.bel_projection.id}
+          max_retries: 1
+        - task_key: stochastic_stress
+          depends_on: [{task_key: bel_projection}]
+          run_job_task:
+            job_id: ${resources.jobs.stochastic_stress.id}

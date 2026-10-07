@@ -1,0 +1,7 @@
+resources:
+  experiments:
+    assumption_models:
+      name: /Users/${workspace.current_user.userName}/lp-actuarial-assumption-models
+      tags:
+        - key: demo
+          value: lp-actuarial
