@@ -9,7 +9,8 @@ from server.config import fqn, get_catalog, get_schema, get_workspace_client, ge
 from server.sql import query_safe
 
 router = APIRouter(prefix="/api", tags=["overview"])
-GENIE_TITLE = "Actuarial Genie — Life & Pension (synthetic)"  # matches scripts/create_genie_space.py
+# Scoped to catalog.schema so several deployments can share a workspace; matches scripts/create_genie_space.py
+GENIE_TITLE = "Actuarial Genie — Life & Pension ({catalog}.{schema})"
 _genie_id: str | None = None
 
 
@@ -20,8 +21,9 @@ def _genie_space_id() -> str:
         return os.environ["GENIE_SPACE_ID"]
     if not _genie_id:
         try:
+            title = GENIE_TITLE.format(catalog=get_catalog(), schema=get_schema())
             spaces = get_workspace_client().api_client.do("GET", "/api/2.0/genie/spaces").get("spaces", [])
-            _genie_id = next((sp["space_id"] for sp in spaces if sp.get("title") == GENIE_TITLE), "")
+            _genie_id = next((sp["space_id"] for sp in spaces if sp.get("title") == title), "")
         except Exception:
             return ""
     return _genie_id or ""

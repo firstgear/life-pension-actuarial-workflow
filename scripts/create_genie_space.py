@@ -16,8 +16,8 @@ from databricks.sdk import WorkspaceClient
 PROFILE = sys.argv[1] if len(sys.argv) > 1 else os.getenv("DATABRICKS_CONFIG_PROFILE", "DEFAULT")
 CATALOG, SCHEMA = os.getenv("CATALOG", "main"), os.getenv("SCHEMA", "lp_actuarial")
 WAREHOUSE = os.environ["WAREHOUSE_ID"]  # required: SQL warehouse id
-TITLE = "Actuarial Genie — Life & Pension (synthetic)"
 S = f"{CATALOG}.{SCHEMA}"
+TITLE = f"Actuarial Genie — Life & Pension ({S})"  # scoped so deployments sharing a workspace never collide
 
 TABLES = ["experience_mart", "ae_results", "mortality_relativities", "bel_runs", "bel_cashflows",
           "stress_results", "stochastic_runs", "extract_approvals", "model_approvals", "audit_log",

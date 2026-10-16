@@ -23,6 +23,9 @@ include:
   - resources/*.yml
 
 sync:
+  # The built frontend is git-ignored but must ship with the app (sync honours .gitignore).
+  include:
+    - src/app/frontend/dist/**
   exclude:
     - .venv/**
     - data/**
